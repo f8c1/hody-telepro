@@ -247,9 +247,10 @@ class HodyClient:
                 except Exception as e:
                     logger.warning(f"Plugin {name} failed: {e}")
 
-        elapsed = (time.monotonic() - start_time) * 1000
         self._stats["inspections"] += 1
         self._stats["total_operations"] += 1
+
+        elapsed = (time.monotonic() - start_time) * 1000
 
         return EntityInspectionResult(
             entity=result,
@@ -317,7 +318,6 @@ class HodyClient:
                 self._stats["total_operations"] += 1
                 return cached
 
-        start_time = time.monotonic()
 
         try:
             if self._anti_flood:
@@ -369,7 +369,6 @@ class HodyClient:
 
         await self._cache.set(cache_key, result)
         await self._cache.set_phone_index(phone_number, cache_key)
-        elapsed = (time.monotonic() - start_time) * 1000
         self._stats["phone_lookups"] += 1
         self._stats["total_operations"] += 1
         return result
