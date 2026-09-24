@@ -176,7 +176,6 @@ class InspectionEngine:
             logger.debug(f"Could not estimate creation for user_id={user_id}: {e}")
 
         if entity_type == EntityType.BOT:
-            bot_info = getattr(raw, "bot_info", None)
             return TelegramUser(
                 user_id=user_id,
                 entity_type=EntityType.BOT,
