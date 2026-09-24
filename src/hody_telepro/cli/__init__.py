@@ -1,5 +1,5 @@
 """CLI interface for Hody-Telepro."""
 
-from hody_telepro.cli.main import app, main, cli
+from hody_telepro.cli.main import app, cli, main
 
-__all__ = ["app", "main", "cli"]
+__all__ = ["app", "cli", "main"]

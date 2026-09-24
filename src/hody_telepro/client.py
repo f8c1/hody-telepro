@@ -12,7 +12,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from typing import Any, Callable, Coroutine, Optional, Union
+from typing import Any, Optional, Union
 
 from hody_telepro.algorithms.creation_estimator import AccountCreationEstimator
 from hody_telepro.cache.cache_manager import HybridIndexedCache, SingleFlightLock
@@ -119,12 +119,12 @@ class HodyClient:
             "start_time": time.time(),
         }
 
-    async def __aenter__(self) -> "HodyClient":
+    async def __aenter__(self) -> HodyClient:
         """Enter async context manager."""
         await self.start()
         return self
 
-    async def __aexit__(self, *args: Any) -> None:
+    async def __aexit__(self, *args: object) -> None:
         """Exit async context manager."""
         await self.stop()
 

@@ -18,10 +18,8 @@ Reference data based on Telegram's known ID distribution:
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 from hody_telepro.models.entities import AccountEstimate
 
@@ -33,7 +31,7 @@ class ReferencePoint:
     date: datetime
     confidence: float
 
-    def __lt__(self, other: "ReferencePoint") -> bool:
+    def __lt__(self, other: ReferencePoint) -> bool:
         return self.user_id < other.user_id
 
 

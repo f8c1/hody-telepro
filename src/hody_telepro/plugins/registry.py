@@ -51,15 +51,12 @@ class Plugin(ABC):
 
     async def on_init(self, client: Any) -> None:
         """Called when the plugin is initialized with a client."""
-        pass
 
     async def on_inspection_start(self, identifier: str) -> None:
         """Called before an inspection begins."""
-        pass
 
     async def on_inspection_complete(self, result: EntityInspectionResult) -> None:
         """Called after an inspection completes."""
-        pass
 
 
 class PluginRegistry:

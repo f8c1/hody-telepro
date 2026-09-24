@@ -8,14 +8,13 @@ live progress, entity inspection, and high-speed batching.
 from __future__ import annotations
 
 import asyncio
-import sys
 from typing import Optional
 
 try:
     import typer
     from rich.console import Console
     from rich.panel import Panel
-    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+    from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
     from rich.table import Table
     HAS_RICH = True
 except ImportError:

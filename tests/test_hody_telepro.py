@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+
 import pytest
 
 from hody_telepro.algorithms.creation_estimator import AccountCreationEstimator
@@ -24,7 +25,6 @@ from hody_telepro.models.entities import (
     EntityStatus,
     EntityType,
     PhoneInfo,
-    TelegramBot,
     TelegramChannel,
     TelegramGroup,
     TelegramUser,
@@ -131,8 +131,8 @@ class TestCreationEstimator:
             self.estimator.estimate(0)
 
     def test_add_reference_point(self):
-        from datetime import datetime
-        self.estimator.add_reference_point(8000000000, datetime(2026, 1, 1), 0.90)
+        from datetime import datetime, timezone
+        self.estimator.add_reference_point(8000000000, datetime(2026, 1, 1, tzinfo=timezone.utc), 0.90)
         estimate = self.estimator.estimate(8000000000)
         assert estimate.estimated_year == 2026
         assert estimate.estimated_month == "January"

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from hody_telepro.models.entities import (
     AccountEstimate,
@@ -20,7 +20,6 @@ from hody_telepro.models.entities import (
     EntityStatus,
     EntityType,
     PhoneInfo,
-    TelegramBot,
     TelegramChannel,
     TelegramGroup,
     TelegramUser,

@@ -1,345 +1,124 @@
 # Hody-Telepro
 
-> An ultra-fast, asynchronous, enterprise-grade Python library for Telegram metadata extraction, entity inspection, and phone number lookup.
+[![CI](https://github.com/f8c1/hody-telepro/actions/workflows/ci.yml/badge.svg)](https://github.com/f8c1/hody-telepro/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT- green)](LICENSE)
 
-![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Version](https://img.shields.io/badge/version-1.0.0-orange.svg)
-![Tests](https://img.shields.io/badge/tests-64%2F64%20passing-brightgreen.svg)
+An asynchronous Python toolkit for **authorized Telegram entity inspection**, CLI workflows, caching, plugins, and structured exports.
 
----
+> Use this project only with accounts, data, and Telegram access that you are authorized to inspect. Results can be incomplete or estimated; they are not an official source of identity or account history.
 
-## Overview
+## Why this project exists
 
-**Hody-Telepro** is the most advanced and fastest Python library designed for Telegram metadata extraction and deep account analysis. Built with enterprise-grade architecture, it provides developers with a unified, simple API for inspecting accounts, bots, channels, and groups with maximum precision and minimal resource consumption.
+Telegram automation projects often repeat the same concerns: asynchronous entity access, safe retry behavior, local caching, structured models, and useful exports. Hody-Telepro packages these concerns behind a small async API and a command-line interface that can be adapted to legitimate internal tools and research workflows.
 
-## Core Features
+## Features
 
-### Entity Inspection
-Pass any identifier (`@username` or ID) to automatically retrieve the full metadata of any Telegram entity (user, bot, channel, or group) with comprehensive details and photo references.
-
-### Phone Lookup
-Enter a phone number to retrieve the complete associated account (username, ID, profile photo, bio).
-
-### Account Creation Estimation
-Accurately estimate the creation date of any Telegram account using a binary search clustering algorithm — no external connections required.
-
-### Smart Anti-Flood Protection
-Built-in rate limiting with single-flight pattern, exponential backoff, and priority queue management to prevent Telegram API bans.
-
-### Async Persistent Sessions
-SQLite-backed session storage for instant resumption and direct SQL queries.
-
-### Plugin System
-Extensible architecture allowing custom functionality without modifying core code.
-
-### Multi-Format Export
-Export results to JSON, CSV, SQLite, or generate styled HTML reports.
-
----
-
-## Architecture
-
-Hody-Telepro is built according to the highest standards of Clean Architecture using cutting-edge technologies:
-
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Core Engine** | Pyrogram v2 + TgCrypto (C) | 3-5x faster than traditional libraries via MTProto 2.0 |
-| **Data Modeling** | msgspec (Rust) | 4x faster than Pydantic, minimal memory footprint |
-| **Concurrency** | asyncio + aiocache | Single-flight pattern prevents FloodWait errors |
-| **Algorithms** | Binary Search O(log n) | Precise account creation date estimation |
-| **Storage** | aiosqlite | Persistent async sessions and cache |
-| **CLI** | Click + Rich | Colorful terminal output with progress bars |
-| **Package** | PEP 621 + uv | Ultra-fast builds and PyPI publishing |
-
----
+- Asynchronous entity inspection for users, bots, channels, and groups
+- Configurable retry and FloodWait-aware backoff helpers
+- Persistent local session and cache support
+- Plugin hooks for domain-specific enrichment
+- JSON, CSV, SQLite, and HTML export paths
+- Batch inspection with bounded concurrency
+- Typed public models and custom exceptions
+- CLI commands for inspection, batch workflows, estimation, and statistics
 
 ## Installation
 
 ```bash
-# Basic installation
-pip install hody-telepro
-
-# With full features (pandas, HTML reports)
-pip install hody-telepro[full]
-
-# Development installation
-pip install hody-telepro[dev]
+python -m pip install hody-telepro
 ```
 
----
+Optional development and reporting dependencies:
 
-## Quick Start
+```bash
+python -m pip install 'hody-telepro[dev]'
+python -m pip install 'hody-telepro[full]'
+```
 
-### Basic Inspection
+## Quick start
+
+Set the Telegram credentials in your shell or a local `.env` file that is never committed:
+
+```bash
+export TELEGRAM_API_ID=12345
+export TELEGRAM_API_HASH='replace-with-your-api-hash'
+```
+
+Then use the async client:
 
 ```python
 import asyncio
 from hody_telepro import HodyClient
 
-async def main():
-    async with HodyClient("my_session", api_id=12345, api_hash="your_hash") as client:
-        # Inspect a user
-        result = await client.inspect("@telegram")
-        print(f"Name: {result.entity.full_name}")
-        print(f"Type: {result.entity.entity_type.value}")
-        print(f"Verified: {result.entity.is_verified}")
-        print(f"Time: {result.inspection_time_ms:.2f}ms")
 
-asyncio.run(main())
+async def main() -> None:
+    async with HodyClient(
+        'demo_session',
+        api_id=12345,
+        api_hash='replace-with-your-api-hash',
+    ) as client:
+        result = await client.inspect('@telegram')
+        print(result.entity.full_name)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
 ```
 
-### Phone Lookup
-
-```python
-async with HodyClient("my_session", api_id=12345, api_hash="your_hash") as client:
-    result = await client.lookup_phone("+1234567890")
-    print(f"Username: {result.username}")
-    print(f"Name: {result.full_name}")
-```
-
-### Account Creation Estimation
-
-```python
-from hody_telepro.algorithms import AccountCreationEstimator
-
-estimator = AccountCreationEstimator()
-result = estimator.estimate(12345)
-
-print(f"Created: {result.estimated_month} {result.estimated_year}")
-print(f"Confidence: {result.confidence:.2%}")
-```
-
-### Batch Processing
-
-```python
-async with HodyClient("my_session", api_id=12345, api_hash="your_hash") as client:
-    results = await client.inspect_batch(
-        ["@telegram", "@durov", "@BotFather"],
-        max_concurrent=5
-    )
-    for r in results:
-        print(f"{r.entity.full_name} ({r.entity.entity_type.value})")
-```
-
-### With Plugins
-
-```python
-from hody_telepro.plugins import BotIntelligencePlugin, SecurityCheckPlugin
-
-async with HodyClient("my_session", api_id=12345, api_hash="your_hash") as client:
-    client.register_plugin("bot_intel", BotIntelligencePlugin())
-    client.register_plugin("security", SecurityCheckPlugin())
-
-    result = await client.inspect("@BotFather")
-    print(f"Risk Level: {result.additional_data.get('security_analysis', {}).get('risk_level')}")
-```
-
-### Export Results
-
-```python
-from hody_telepro.exporters import JSONExporter, CSVExporter, HTMLReporter
-
-# Export to JSON
-JSONExporter().export_batch(results, "output.json")
-
-# Export to CSV
-CSVExporter().export_batch(results, "output.csv")
-
-# Generate HTML Report
-HTMLReporter().generate_report(results, "report.html")
-```
-
----
-
-## CLI Usage
+## CLI examples
 
 ```bash
-# Install CLI tool
-pip install hody-telepro
-
-# Inspect an entity
-hody-telepro --api-id 12345 --api-hash "hash" inspect @telegram
-
-# Phone lookup
-hody-telepro lookup +1234567890
-
-# Estimate account creation
+hody-telepro --help
+hody-telepro --api-id "$TELEGRAM_API_ID" --api-hash "$TELEGRAM_API_HASH" inspect @telegram
 hody-telepro estimate 12345
-
-# Batch inspection
-hody-telepro batch @telegram @durov -f html -o report.html
-
-# View stats
 hody-telepro stats
 ```
 
----
+Do not place API credentials, session files, phone numbers, or private exports in a public repository.
 
-## Plugin System
+## Architecture
 
-### Creating a Custom Plugin
-
-```python
-from hody_telepro.plugins import Plugin
-from hody_telepro.models.entities import EntityInspectionResult
-
-class MyPlugin(Plugin):
-    name = "my_plugin"
-    version = "1.0.0"
-    description = "My custom analysis plugin"
-
-    async def process(self, result: EntityInspectionResult) -> EntityInspectionResult:
-        # Add custom analysis
-        result.additional_data["custom_field"] = "analyzed_value"
-        return result
-
-# Register with client
-client.register_plugin("my_plugin", MyPlugin())
+```text
+src/hody_telepro/
+├── client.py                 Public async client
+├── models/                   Typed entity and result models
+├── engines/                  Inspection and retry helpers
+├── cache/                    Persistent cache and single-flight support
+├── exporters/                JSON, CSV, SQLite, and HTML exporters
+├── algorithms/               Account-estimation utilities
+├── plugins/                  Extension points and built-in plugins
+├── cli/                      Command-line interface
+└── utils/                    Exceptions and shared utilities
 ```
-
-### Built-in Plugins
-
-| Plugin | Description |
-|--------|-------------|
-| `BotIntelligencePlugin` | Analyzes bot capabilities and behavior patterns |
-| `SecurityCheckPlugin` | Performs security risk assessment |
-| `HistoryEnrichmentPlugin` | Enriches data with historical context |
-
----
-
-## Built-in Anti-Flood System
-
-Hody-Telepro includes a sophisticated anti-flood system:
-
-- **Single-Flight Pattern**: Merges concurrent identical requests into one
-- **Exponential Backoff**: Automatically adjusts delays on FloodWait
-- **Priority Queue**: Critical requests processed before batch operations
-- **Adaptive Rate Limiting**: Dynamically adjusts based on server responses
-- **Retry Handler**: Configurable retries with jitter
-
----
-
-## Project Structure
-
-```
-hody-telepro/
-├── src/
-│   └── hody_telepro/
-│       ├── __init__.py              # Public API
-│       ├── client.py                # Main client
-│       ├── models/
-│       │   └── entities.py          # Data models (msgspec)
-│       ├── engines/
-│       │   ├── inspection_engine.py # Entity inspection
-│       │   └── anti_flood.py        # Rate limiting
-│       ├── cache/
-│       │   └── cache_manager.py     # Async cache + single-flight
-│       ├── exporters/
-│       │   └── exporters.py         # JSON, CSV, SQLite, HTML
-│       ├── algorithms/
-│       │   └── creation_estimator.py # Binary search clustering
-│       ├── cli/
-│       │   └── main.py              # CLI interface
-│       ├── plugins/
-│       │   └── registry.py          # Plugin system
-│       └── utils/
-│           └── exceptions.py        # Custom exceptions
-├── tests/
-│   └── test_hody_telepro.py         # 64 tests
-├── examples/
-│   └── basic_usage.py               # Usage examples
-├── pyproject.toml                   # Package configuration
-└── README.md                        # Documentation
-```
-
----
-
-## Configuration
-
-### Environment Variables
-
-```bash
-export TELEGRAM_API_ID=12345
-export TELEGRAM_API_HASH="your_api_hash"
-```
-
-### Client Options
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `session_name` | str | Required | Telegram session identifier |
-| `api_id` | int | Required | Telegram API ID |
-| `api_hash` | str | Required | Telegram API hash |
-| `cache_ttl` | float | 3600 | Cache time-to-live in seconds |
-| `cache_max_size` | int | 10000 | Maximum cache entries |
-| `anti_flood_enabled` | bool | True | Enable flood protection |
-| `max_retries` | int | 5 | Maximum operation retries |
-| `workdir` | str | None | Session storage directory |
-
----
 
 ## Development
 
 ```bash
-# Clone repository
-git clone https://github.com/hody/hody-telepro.git
+git clone https://github.com/f8c1/hody-telepro.git
 cd hody-telepro
-
-# Install in development mode
-pip install -e ".[dev]"
-
-# Run tests
-pytest tests/ -v
-
-# Run with coverage
-pytest tests/ --cov=hody_telepro --cov-report=html
-
-# Linting
-ruff check src/
-
-# Type checking
-mypy src/hody_telepro/
+PIP_DEFAULT_TIMEOUT=120 PIP_RETRIES=10 python -m pip install --break-system-packages --retries 10 --timeout 120 --index-url https://pypi.org/simple -e '.[dev]'
+pytest -q
+ruff check src tests
+mypy src/hody_telepro
 ```
 
----
+## Privacy and responsible use
 
-## Publishing to PyPI
+This software is intended for authorized development, testing, research, and automation. Do not use it to harass, identify, profile, or monitor people without a lawful basis and appropriate permission. Review Telegram's terms and the laws applicable to your use case. Treat phone numbers, session files, exported metadata, and logs as sensitive data. The account-creation estimator is a heuristic and must not be presented as an official Telegram record.
 
-```bash
-# Build package
-python -m build
+## Limitations
 
-# Upload to PyPI
-twine upload dist/*
+Network behavior, Telegram API permissions, rate limits, entity visibility, and library compatibility can affect results. The project does not guarantee completeness, accuracy, availability, or uninterrupted access. Validate behavior in a controlled environment before using it in production.
 
-# Or use uv (recommended)
-uv build
-uv publish
-```
+## Contributing
 
----
+Issues and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and avoid including credentials, session files, personal data, or private Telegram exports in reports.
+
+## Security
+
+Please read [SECURITY.md](SECURITY.md) for responsible disclosure guidance.
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-## Credits
-
-- **Pyrogram** — Telegram MTProto client library
-- **msgspec** — Fast serialization library (Rust)
-- **aiocache** — Async caching framework
-- **Click** — Command-line interface creation
-- **Rich** — Terminal formatting library
-
----
-
-<div align="center">
-
-**Built with ❤️ by Hody**
-
-[Report Bug](https://github.com/hody/hody-telepro/issues) | [Request Feature](https://github.com/hody/hody-telepro/issues)
-
-</div>
+MIT License. See [LICENSE](LICENSE).

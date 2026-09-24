@@ -10,7 +10,6 @@ from typing import Optional
 
 class HodyTeleproError(Exception):
     """Base exception for all Hody-Telepro errors."""
-    pass
 
 
 class EntityNotFoundError(HodyTeleproError):

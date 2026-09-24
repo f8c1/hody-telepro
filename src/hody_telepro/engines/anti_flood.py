@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import time
-from typing import Any, Callable, Coroutine, Optional
+from collections.abc import Coroutine
+from typing import Any, Callable, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ class RetryHandler:
         for attempt in range(self._max_retries + 1):
             try:
                 return await func(*args, **kwargs)
-            except Exception as e:
+            except Exception:
                 if attempt == self._max_retries:
                     raise
                 await asyncio.sleep(1.0 * (2 ** attempt))

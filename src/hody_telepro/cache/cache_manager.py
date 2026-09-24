@@ -11,8 +11,9 @@ from __future__ import annotations
 import asyncio
 import logging
 import pickle
+from collections.abc import Coroutine
 from pathlib import Path
-from typing import Any, Callable, Coroutine, Optional, TypeVar
+from typing import Any, Callable, Optional, TypeVar
 
 logger = logging.getLogger(__name__)
 
